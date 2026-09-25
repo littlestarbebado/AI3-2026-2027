@@ -1,0 +1,10 @@
+Preencha a tabela seguinte para o seu ficheiro fatura-v2.xml, escolhendo um nó de cada tipo.
+
+
+
+| Nó           | Tipo       | Pai       | Irmãos          | Justificação |
+| fatura       | raiz       | -         | -               | Único elemento no topo da árvore. É a raiz do documento, não tem pai nem irmãos. |
+| cabecalho    | intermédio | fatura    | produtos        | Contém sub-elementos (`data`, `cliente`) e partilha o nível hierárquico com `produtos. |
+| data         | terminal   | cabecalho | cliente         | Contém o valor de texto final. Fica dentro de `cabecalho` ao mesmo nível que `cliente. |
+| id           | atributo   | fatura    | -               | Propriedade da etiqueta `<fatura>`.** Os atributos não são nós irmãos dos elementos filhos.|
+| "2026-09-18" | texto      | data      | -               | Dado real (folha da árvore) contido dentro do elemento terminal `<data>`. |

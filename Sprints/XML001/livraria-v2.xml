@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+    <book category="romance">
+        <title lang="pt">Os Maias</title>
+        <author>Eça de Queirós</author>
+        <year>1888</year>
+        <price value="19.90"/>
+    </book>
+</bookstore>

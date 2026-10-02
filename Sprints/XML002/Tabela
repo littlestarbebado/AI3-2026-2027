@@ -1,0 +1,9 @@
+## 12. Construções usadas nos schemas
+
+| Construção | Onde a usou | O que ficou a ser exigido | O que continua a ser permitido |
+|---|---|---|---|
+| `xsd:complexType` | Em `Product` e `Provider` | Respeitar os elementos e atributos declarados dentro de cada tipo. | Valores diferentes, desde que cumpram os tipos e as regras definidos. |
+| `xsd:sequence` | Nos elementos filhos de `Product` | Os elementos têm de aparecer pela ordem indicada no schema. | Omitir elementos opcionais e repetir os que permitem repetição. |
+| `xsd:attribute` com `use` | Em `ProductID` e `Category` | `ProductID` é obrigatório através de `use="required"`. | Omitir `Category`, por ser opcional. |
+| `minOccurs` / `maxOccurs` | Em `Provider`, com `0` e `3` | Não pode haver mais de três fabricantes. | Não indicar fabricante ou indicar um, dois ou três. |
+| `mixed="true"` | No tipo complexo de `aviso` | Os elementos continuam a cumprir a ordem, os tipos e as quantidades definidos. | Escrever e alterar texto livre entre os elementos. |

@@ -1,0 +1,886 @@
+```yaml
+openapi: 3.0.3
+info:
+  title: API de Sugestões ESTGV
+  version: 2.0.0
+  description: Autenticação JWT. Alunos acedem apenas às suas sugestões; serviços
+    consultam todas. O servidor demonstrativo implementa apenas tokens e listagem
+    de sugestões.
+servers:
+- url: https://api.estgv.exemplo/v2
+paths:
+  /sugestoes:
+    get:
+      operationId: listarSugestoes
+      summary: Listar sugestões, com filtros e paginação
+      parameters:
+      - name: estado
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/Estado'
+      - name: categoria
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/CodigoCategoria'
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+      - name: tamanhoPagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Lista de sugestões obtida com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPrivateNoCache'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaSugestoes'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          description: Token ausente, inválido ou expirado.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+            WWW-Authenticate:
+              schema:
+                type: string
+                enum:
+                - Bearer
+                - Bearer error="invalid_token"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+              example:
+                codigo: 401
+                mensagem: Autenticação necessária.
+      description: 'Alunos: apenas sugestões próprias. Serviços: todas as sugestões.'
+    post:
+      operationId: criarSugestao
+      summary: Submeter uma sugestão
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SugestaoNova'
+      responses:
+        '201':
+          description: Sugestão criada com sucesso
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sugestao'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/Proibido'
+      description: Apenas alunos; apenas sugestões próprias.
+  /sugestoes/{id}:
+    get:
+      operationId: obterSugestao
+      summary: Obter uma sugestão
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - name: If-None-Match
+        in: header
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Detalhes da sugestão obtida com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPrivateNoCache'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sugestao'
+              example:
+                id: 42
+                titulo: Melhores computadores no laboratório
+                descricao: Os computadores do laboratório 3 necessitam de upgrade
+                  de memória RAM.
+                categoria: instalacoes
+                numeroAluno: '23015'
+                estado: aceite
+                dataCriacao: '2026-10-01T10:00:00Z'
+                dataAtualizacao: '2026-10-02T14:30:00Z'
+                dataResolucao: null
+        '304':
+          description: Conteúdo não modificado
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPrivateNoCache'
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '404':
+          description: Sugestão inexistente ou pertencente a outro aluno (oculta a
+            existência).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+      description: 'Alunos: apenas sugestões próprias. Serviços: todas as sugestões.'
+    put:
+      operationId: substituirSugestao
+      summary: Editar uma sugestão ainda submetida
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SugestaoNova'
+      responses:
+        '200':
+          description: Sugestão editada com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sugestao'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        '404':
+          description: Sugestão inexistente ou pertencente a outro aluno (oculta a
+            existência).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: A sugestão já não se encontra no estado submetida e não pode
+            ser editada
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '412':
+          $ref: '#/components/responses/Erro412'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/Proibido'
+      description: Apenas alunos; apenas sugestões próprias.
+    delete:
+      operationId: retirarSugestao
+      summary: Retirar uma sugestão ainda submetida
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Sugestão retirada com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+        '404':
+          description: Sugestão inexistente ou pertencente a outro aluno (oculta a
+            existência).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: A sugestão já não se encontra no estado submetida e não pode
+            ser retirada
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/Proibido'
+      description: Apenas alunos; apenas sugestões próprias.
+  /sugestoes/{id}/acompanhamentos:
+    get:
+      operationId: listarAcompanhamentos
+      summary: Histórico de acompanhamento, do mais antigo para o mais recente
+      parameters:
+      - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Histórico de acompanhamento obtido com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPrivateNoCache'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Acompanhamento'
+        '404':
+          description: Sugestão inexistente ou pertencente a outro aluno (oculta a
+            existência).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+      description: 'Alunos: apenas sugestões próprias. Serviços: todas as sugestões.'
+    post:
+      operationId: registarAcompanhamento
+      summary: Registar uma mudança de estado
+      parameters:
+      - $ref: '#/components/parameters/id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcompanhamentoNovo'
+      responses:
+        '201':
+          description: Acompanhamento registado com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acompanhamento'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        '404':
+          description: Sugestão inexistente ou pertencente a outro aluno (oculta a
+            existência).
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: Transição de estado inválida para a sugestão
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlNoStore'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+        '401':
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/Proibido'
+      description: Apenas serviços.
+  /estatisticas/resolucao:
+    get:
+      operationId: obterEstatisticasResolucao
+      summary: Totais por estado, taxa e tempo médio de resolução
+      parameters:
+      - name: anoLetivo
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{4}$
+      responses:
+        '200':
+          description: Estatísticas de resolução obtidas com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPublicMaxAge3600'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstatisticasResolucao'
+              example:
+                anoLetivo: 2026-2027
+                totalSugestoes: 10
+                porEstado:
+                  submetida: 2
+                  em_analise: 3
+                  aceite: 1
+                  rejeitada: 1
+                  resolvida: 3
+                taxaResolucao: 0.3
+                tempoMedioResolucaoDias: 4.5
+        '400':
+          $ref: '#/components/responses/Erro400'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+      security: []
+  /estatisticas/categorias:
+    get:
+      operationId: obterEstatisticasCategorias
+      summary: Os mesmos indicadores, por categoria
+      parameters:
+      - name: anoLetivo
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{4}-\d{4}$
+      responses:
+        '200':
+          description: Estatísticas por categoria obtidas com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPublicMaxAge3600'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EstatisticasCategorias'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+      security: []
+  /categorias:
+    get:
+      operationId: listarCategorias
+      summary: Listar as categorias e a sua descrição
+      responses:
+        '200':
+          description: Lista de categorias obtida com sucesso
+          headers:
+            Cache-Control:
+              $ref: '#/components/headers/CacheControlPublicMaxAge86400'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categoria'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+      security: []
+  /tokens:
+    post:
+      operationId: criarToken
+      summary: Autenticar utilizador
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenciais'
+      responses:
+        '200':
+          description: Token emitido.
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+              example:
+                token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NSJ9.c2lnbmF0dXJl
+                tipo: Bearer
+                expiraEm: 900
+        '400':
+          $ref: '#/components/responses/Erro400'
+        '401':
+          $ref: '#/components/responses/CredenciaisInvalidas'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+components:
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  headers:
+    Location:
+      schema:
+        type: string
+      description: URI do novo recurso criado
+    ETag:
+      schema:
+        type: string
+      description: Identificador de versão da representação do recurso
+    CacheControlPrivateNoCache:
+      schema:
+        type: string
+        enum:
+        - private, no-cache
+      description: Política de cache privada sem cache
+    CacheControlNoStore:
+      schema:
+        type: string
+        enum:
+        - no-store
+      description: Política de cache para não armazenar
+    CacheControlPublicMaxAge3600:
+      schema:
+        type: string
+        enum:
+        - public, max-age=3600
+      description: Política de cache pública de 1 hora
+    CacheControlPublicMaxAge86400:
+      schema:
+        type: string
+        enum:
+        - public, max-age=86400
+      description: Política de cache pública de 24 horas
+  responses:
+    Erro400:
+      description: Pedido inválido devido a erro de sintaxe ou violação de validação
+        de schema
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlNoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    Erro404:
+      description: Recurso não encontrado
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlNoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    Erro412:
+      description: Pré-condição falhou (o cabeçalho If-Match não corresponde à ETag
+        atual)
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlNoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ErroDefault:
+      description: Erro inesperado do servidor
+      headers:
+        Cache-Control:
+          $ref: '#/components/headers/CacheControlNoStore'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    NaoAutenticado:
+      description: Token ausente, inválido ou expirado.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+        WWW-Authenticate:
+          schema:
+            type: string
+            enum:
+            - Bearer
+            - Bearer error="invalid_token"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    CredenciaisInvalidas:
+      description: Credenciais inválidas.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    Proibido:
+      description: Papel sem permissão para esta operação.
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum:
+            - no-store
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+  schemas:
+    Estado:
+      type: string
+      enum:
+      - submetida
+      - em_analise
+      - aceite
+      - rejeitada
+      - resolvida
+    CodigoCategoria:
+      type: string
+      enum:
+      - instalacoes
+      - ensino
+      - servicos
+      - atividades
+      - outra
+    Categoria:
+      type: object
+      properties:
+        codigo:
+          $ref: '#/components/schemas/CodigoCategoria'
+        descricao:
+          type: string
+          minLength: 3
+          maxLength: 80
+      required:
+      - codigo
+      - descricao
+    SugestaoNova:
+      type: object
+      properties:
+        titulo:
+          type: string
+          minLength: 10
+          maxLength: 120
+        descricao:
+          type: string
+          minLength: 20
+          maxLength: 2000
+        categoria:
+          $ref: '#/components/schemas/CodigoCategoria'
+      required:
+      - titulo
+      - descricao
+      - categoria
+    Sugestao:
+      allOf:
+      - $ref: '#/components/schemas/SugestaoNova'
+      - type: object
+        properties:
+          id:
+            type: integer
+            minimum: 1
+            readOnly: true
+          estado:
+            allOf:
+            - $ref: '#/components/schemas/Estado'
+            readOnly: true
+          dataCriacao:
+            type: string
+            format: date-time
+            readOnly: true
+          dataAtualizacao:
+            type: string
+            format: date-time
+            readOnly: true
+          dataResolucao:
+            type: string
+            format: date-time
+            nullable: true
+            readOnly: true
+          numeroAluno:
+            type: string
+            pattern: ^\d{5,8}$
+            readOnly: true
+        required:
+        - id
+        - estado
+        - dataCriacao
+        - dataAtualizacao
+        - dataResolucao
+        - numeroAluno
+    AcompanhamentoNovo:
+      type: object
+      properties:
+        novoEstado:
+          $ref: '#/components/schemas/Estado'
+        nota:
+          type: string
+          minLength: 5
+          maxLength: 500
+      required:
+      - novoEstado
+      - nota
+    Acompanhamento:
+      allOf:
+      - $ref: '#/components/schemas/AcompanhamentoNovo'
+      - type: object
+        properties:
+          id:
+            type: integer
+            minimum: 1
+            readOnly: true
+          estadoAnterior:
+            allOf:
+            - $ref: '#/components/schemas/Estado'
+            readOnly: true
+          data:
+            type: string
+            format: date-time
+            readOnly: true
+          responsavel:
+            type: string
+            pattern: ^[A-Z][a-z]+ [A-Z][a-z]+$
+            minLength: 5
+            maxLength: 60
+            readOnly: true
+        required:
+        - id
+        - estadoAnterior
+        - data
+        - responsavel
+    ListaSugestoes:
+      type: object
+      properties:
+        pagina:
+          type: integer
+          minimum: 1
+        tamanhoPagina:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        itens:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Sugestao'
+      required:
+      - pagina
+      - tamanhoPagina
+      - total
+      - itens
+    EstatisticasResolucao:
+      type: object
+      properties:
+        anoLetivo:
+          type: string
+          pattern: ^\d{4}-\d{4}$
+        totalSugestoes:
+          type: integer
+          minimum: 0
+        porEstado:
+          type: object
+          properties:
+            submetida:
+              type: integer
+              minimum: 0
+            em_analise:
+              type: integer
+              minimum: 0
+            aceite:
+              type: integer
+              minimum: 0
+            rejeitada:
+              type: integer
+              minimum: 0
+            resolvida:
+              type: integer
+              minimum: 0
+          required:
+          - submetida
+          - em_analise
+          - aceite
+          - rejeitada
+          - resolvida
+        taxaResolucao:
+          type: number
+          minimum: 0
+          maximum: 1
+        tempoMedioResolucaoDias:
+          type: number
+          minimum: 0
+          nullable: true
+      required:
+      - anoLetivo
+      - totalSugestoes
+      - porEstado
+      - taxaResolucao
+      - tempoMedioResolucaoDias
+    EstatisticasCategorias:
+      type: object
+      properties:
+        anoLetivo:
+          type: string
+          pattern: ^\d{4}-\d{4}$
+        categorias:
+          type: array
+          minItems: 1
+          maxItems: 5
+          items:
+            type: object
+            properties:
+              categoria:
+                $ref: '#/components/schemas/CodigoCategoria'
+              total:
+                type: integer
+                minimum: 0
+              resolvidas:
+                type: integer
+                minimum: 0
+              taxaResolucao:
+                type: number
+                minimum: 0
+                maximum: 1
+            required:
+            - categoria
+            - total
+            - resolvidas
+            - taxaResolucao
+      required:
+      - anoLetivo
+      - categorias
+    Erro:
+      type: object
+      properties:
+        codigo:
+          type: integer
+          minimum: 400
+          maximum: 599
+        mensagem:
+          type: string
+          minLength: 1
+          maxLength: 200
+        detalhes:
+          type: array
+          items:
+            type: object
+            properties:
+              campo:
+                type: string
+              problema:
+                type: string
+            required:
+            - campo
+            - problema
+      required:
+      - codigo
+      - mensagem
+    Credenciais:
+      type: object
+      required:
+      - utilizador
+      - palavraPasse
+      properties:
+        utilizador:
+          type: string
+          pattern: ^(\d{5,8}|[a-z]+\.[a-z]+)$
+        palavraPasse:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+    Token:
+      type: object
+      required:
+      - token
+      - tipo
+      - expiraEm
+      properties:
+        token:
+          type: string
+          pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+        tipo:
+          type: string
+          enum:
+          - Bearer
+        expiraEm:
+          type: integer
+          minimum: 1
+  securitySchemes:
+    tokenJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JWT assinado com HS256.
+
+
+        | Claim | Tipo | Significado |
+
+        |---|---|---|
+
+        | sub | string | Identificador do utilizador |
+
+        | nome | string | Nome |
+
+        | papel | string | aluno ou servicos |
+
+        | iat | number | Instante de emissão, segundos Unix |
+
+        | exp | number | Expiração, segundos Unix |'
+security:
+- tokenJWT: []
+```

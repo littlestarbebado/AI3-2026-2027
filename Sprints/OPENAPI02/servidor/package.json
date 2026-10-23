@@ -1,0 +1,19 @@
+{
+  "name": "api02-sugestoes",
+  "version": "1.0.0",
+  "description": "Demonstra\u00e7\u00e3o local de autentica\u00e7\u00e3o JWT e sugest\u00f5es",
+  "scripts": {
+    "start": "node --env-file=.env servidor.js",
+    "hash": "node gerar-hash.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "private": true
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Sugestões de Alunos</title>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Portal de Sugestões · ESTGV</h1>
+      <span id="indicador-sessao" class="badge">A verificar...</span>
+    </header>
+
+    <!-- ZONA CONFIGURAÇÕES (Sempre visível, guardada em localStorage) -->
+    <section class="card" id="zona-configuracoes">
+      <h2 class="card-title">Configurações da Interface (localStorage)</h2>
+      <div class="grid-config">
+        <div class="form-group">
+          <label for="select-tema">Tema visual:</label>
+          <select id="select-tema">
+            <option value="claro">Claro</option>
+            <option value="escuro">Escuro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="select-ordenacao">Ordenação das sugestões:</label>
+          <select id="select-ordenacao">
+            <option value="recentes">Mais recentes primeiro</option>
+            <option value="estado">Por estado</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENSAGENS DE ALERTA -->
+    <div id="alerta-global" class="alerta hidden"></div>
+
+    <!-- FORMULÁRIO DE ENTRADA (Visível quando não autenticado) -->
+    <section class="card" id="zona-login">
+      <h2 class="card-title">Iniciar Sessão</h2>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="input-utilizador">Utilizador:</label>
+          <input type="text" id="input-utilizador" required placeholder="ex: ana ou bruno">
+        </div>
+        <div class="form-group">
+          <label for="input-palavrapasse">Palavra-passe:</label>
+          <input type="password" id="input-palavrapasse" required placeholder="segredo123">
+        </div>
+        <button type="submit" id="btn-entrar">Entrar</button>
+      </form>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.75rem;">
+        Contas de teste: <strong>ana</strong> (aluno) ou <strong>bruno</strong> (docente) | Palavra-passe: <strong>segredo123</strong>
+      </p>
+    </section>
+
+    <!-- ÁREA DE SESSÃO ATIVA (Visível após autenticação bem-sucedida) -->
+    <section class="card hidden" id="zona-sessao">
+      <div class="status-bar">
+        <div>
+          <span style="font-weight: 600;" id="texto-utilizador-sessao">Utilizador</span>
+          <span class="badge" id="badge-papel" style="margin-left: 0.5rem;">papel</span>
+        </div>
+        <button type="button" class="danger" id="btn-terminar-sessao">Terminar sessão</button>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;" id="texto-expiracao-sessao"></p>
+
+      <!-- FORMULÁRIO DE NOVA SUGESTÃO (Apenas para alunos, com rascunho em sessionStorage) -->
+      <div id="zona-nova-sugestao" class="hidden" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+        <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Nova Sugestão (Rascunho em sessionStorage)</h3>
+        <form id="form-nova-sugestao">
+          <div class="form-group">
+            <label for="input-sugestao-texto">Descreva a sua sugestão:</label>
+            <textarea id="input-sugestao-texto" rows="3" placeholder="Escreva aqui a sua sugestão... O texto é guardado automaticamente enquanto digita."></textarea>
+          </div>
+          <button type="submit" id="btn-submeter-sugestao">Submeter Sugestão</button>
+        </form>
+      </div>
+
+      <!-- LISTA DE SUGESTÕES -->
+      <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+        <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Sugestões Registadas</h3>
+        <div id="lista-sugestoes">
+          <p style="color: var(--text-muted); font-size: 0.9rem;">A carregar sugestões...</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="configuracoes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

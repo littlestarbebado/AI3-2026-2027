@@ -1,0 +1,314 @@
+openapi: 3.0.3
+info:
+  title: API de Sugestões de Alunos
+  description: API REST para submissão e consulta de sugestões de alunos com autenticação JWT via Cookie e Authorization header.
+  version: 2.1.0
+  license:
+    name: MIT
+
+servers:
+  - url: /v2
+    description: Servidor da API v2
+
+security:
+  - tokenJWT: []
+  - cookieSessao: []
+
+paths:
+  /sessao:
+    post:
+      operationId: criarSessao
+      summary: Criar sessão e cookie de autenticação
+      description: Verifica as credenciais e devolve a sessão com o cabeçalho Set-Cookie configurado.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenciais'
+      responses:
+        '200':
+          description: Sessão iniciada com sucesso
+          headers:
+            Set-Cookie:
+              description: Cookie de sessão com o token JWT (HttpOnly, SameSite=Strict, Path=/v2, Max-Age=900)
+              schema:
+                type: string
+                example: sessao=eyJhbGciOi...; Max-Age=900; Path=/v2; HttpOnly; SameSite=Strict
+            Cache-Control:
+              description: Impede o armazenamento da resposta em cache
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sessao'
+        '400':
+          description: Pedido inválido (campos em falta)
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '401':
+          description: Credenciais inválidas
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+    get:
+      operationId: obterSessao
+      summary: Obter dados da sessão do utilizador autenticado
+      description: Retorna os dados da sessão identificada pelo token JWT (via cabeçalho Authorization ou Cookie).
+      responses:
+        '200':
+          description: Dados da sessão atual
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sessao'
+        '401':
+          description: Não autenticado ou token inválido/expirado
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+    delete:
+      operationId: terminarSessao
+      summary: Terminar sessão
+      description: Apaga o cookie de sessão no browser e termina a sessão do utilizador.
+      security: []
+      responses:
+        '204':
+          description: Sessão terminada com sucesso
+          headers:
+            Set-Cookie:
+              description: Cabeçalho que expira e apaga o cookie no cliente
+              schema:
+                type: string
+                example: sessao=; Max-Age=0; Path=/v2; HttpOnly; SameSite=Strict
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+
+  /tokens:
+    post:
+      operationId: criarToken
+      summary: Autenticar utilizador e obter token no corpo da resposta
+      description: Operação mantida para retrocompatibilidade com clientes da API02.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenciais'
+      responses:
+        '200':
+          description: Token emitido com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOi...
+                required:
+                  - token
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '401':
+          description: Credenciais incorretas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+  /sugestoes:
+    get:
+      operationId: listarSugestoes
+      summary: Obter sugestões
+      description: Devolve as sugestões visíveis ao utilizador autenticado.
+      responses:
+        '200':
+          description: Lista de sugestões
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sugestao'
+        '401':
+          description: Utilizador não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+    post:
+      operationId: criarSugestao
+      summary: Criar uma nova sugestão
+      description: Cria uma nova sugestão associada ao aluno autenticado. Apenas utilizadores com papel 'aluno' têm permissão.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NovaSugestao'
+      responses:
+        '201':
+          description: Sugestão criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sugestao'
+        '400':
+          description: Dados da sugestão inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '401':
+          description: Utilizador não autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '403':
+          description: Apenas alunos podem criar sugestões
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+
+components:
+  securitySchemes:
+    tokenJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT de autenticação enviado no cabeçalho HTTP Authorization (Bearer <token>)
+    cookieSessao:
+      type: apiKey
+      in: cookie
+      name: sessao
+      description: Cookie de sessão HttpOnly com atributos Max-Age=900, Path=/v2, HttpOnly, SameSite=Strict
+
+  schemas:
+    Credenciais:
+      type: object
+      properties:
+        utilizador:
+          type: string
+          example: ana
+        palavraPasse:
+          type: string
+          example: segredo123
+      required:
+        - utilizador
+        - palavraPasse
+
+    Sessao:
+      type: object
+      properties:
+        utilizador:
+          type: string
+          example: ana
+        nome:
+          type: string
+          example: Ana Marques
+        papel:
+          type: string
+          enum:
+            - aluno
+            - docente
+          example: aluno
+        expiracao:
+          type: string
+          format: date-time
+          example: '2026-10-23T10:15:00.000Z'
+      required:
+        - utilizador
+        - nome
+        - papel
+        - expiracao
+
+    NovaSugestao:
+      type: object
+      properties:
+        texto:
+          type: string
+          minLength: 5
+          maxLength: 500
+          example: Instalar novos pontos de carregamento na biblioteca.
+      required:
+        - texto
+
+    Sugestao:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        numeroAluno:
+          type: string
+          example: '28377'
+        texto:
+          type: string
+          example: Instalar novos pontos de carregamento na biblioteca.
+        data:
+          type: string
+          format: date-time
+          example: '2026-10-23T09:30:00.000Z'
+        estado:
+          type: string
+          enum:
+            - submetida
+            - em_analise
+            - aceite
+            - rejeitada
+          example: submetida
+      required:
+        - id
+        - numeroAluno
+        - texto
+        - data
+        - estado
+
+    Erro:
+      type: object
+      properties:
+        erro:
+          type: string
+          example: Mensagem descritiva do erro
+      required:
+        - erro

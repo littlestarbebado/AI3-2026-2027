@@ -1,0 +1,7 @@
+[
+  {"codigo":"instalacoes","descricao":"Instalações e equipamentos"},
+  {"codigo":"ensino","descricao":"Ensino e aprendizagem"},
+  {"codigo":"servicos","descricao":"Serviços de apoio"},
+  {"codigo":"atividades","descricao":"Atividades académicas"},
+  {"codigo":"outra","descricao":"Outras sugestões"}
+]

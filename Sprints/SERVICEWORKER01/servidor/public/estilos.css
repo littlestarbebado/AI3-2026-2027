@@ -1,0 +1,33 @@
+:root { color-scheme: light; --fundo: #f3f2ee; --papel: #fff; --texto: #202720; --linha: #c7cdc4; --acento: #325f3e; --alerta: #784100; }
+:root[data-tema="escuro"] { color-scheme: dark; --fundo: #151b17; --papel: #202a23; --texto: #edf2e8; --linha: #57665a; --acento: #b9d6a2; --alerta: #ffd798; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 36px 16px; background: var(--fundo); color: var(--texto); font: 16px/1.55 system-ui, sans-serif; }
+main { max-width: 850px; margin: auto; }
+header { padding: 12px 0 20px; }
+.marca { font: 700 12px/1.4 monospace; letter-spacing: .14em; color: var(--acento); }
+h1 { max-width: 650px; font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.08; letter-spacing: -.045em; }
+h2 { font-size: 1.4rem; } h3 { margin-top: 0; }
+section { background: var(--papel); border: 1px solid var(--linha); padding: 24px; margin: 20px 0; border-radius: 8px; }
+section section { padding: 20px 0 0; border: 0; border-top: 1px solid var(--linha); border-radius: 0; }
+label { display: block; margin: 12px 0 5px; font-weight: 600; }
+input, textarea, select, button { font: inherit; max-width: 100%; min-width: 0; border: 1px solid var(--linha); border-radius: 4px; padding: 11px 12px; }
+input, textarea, select { width: 100%; background: var(--fundo); color: var(--texto); }
+textarea { resize: vertical; }
+button { background: var(--acento); color: var(--papel); cursor: pointer; margin-top: 14px; font-weight: 600; }
+button.secundario { background: var(--papel); color: var(--texto); }
+button:disabled { cursor: not-allowed; opacity: .55; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+:focus-visible { outline: 3px solid #cf792e; outline-offset: 4px; }
+[hidden] { display: none !important; }
+#mensagem:not(:empty) { border-left: 4px solid var(--alerta); padding: 12px; color: var(--alerta); background: var(--papel); }
+.legenda, footer, #ligacao { font-size: .9rem; }
+.acoes, .grelha { display: flex; gap: 12px; flex-wrap: wrap; }
+.grelha > div { flex: 1 1 200px; }
+ul { list-style: none; padding: 0; }
+li { padding: 16px 0; border-bottom: 1px solid var(--linha); overflow-wrap: anywhere; }
+li strong, li span { display: block; }
+li.pendente { border-left: 3px solid var(--alerta); padding-left: 12px; }
+dialog { max-width: min(520px, calc(100% - 32px)); padding: 24px; background: var(--papel); color: var(--texto); border: 1px solid var(--linha); border-radius: 8px; }
+dialog::backdrop { background: #0008; }
+footer { padding: 18px 0; }
+@media (max-width: 420px) { body { padding: 16px 12px; } section { padding: 18px; } .acoes button { width: 100%; } }

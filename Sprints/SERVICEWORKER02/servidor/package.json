@@ -1,0 +1,15 @@
+{
+  "name": "servidor-sugestoes",
+  "version": "2.2.0",
+  "description": "Servidor da API de Sugestões dos Alunos (Ficha API05 - SERVICEWORKER02)",
+  "type": "module",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node --env-file=.env servidor.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

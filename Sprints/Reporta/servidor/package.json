@@ -1,0 +1,11 @@
+{
+  "name": "reporta-e2-01",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node --env-file=.env servidor.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

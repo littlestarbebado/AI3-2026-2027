@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "titulo": "Melhorar iluminação",
+    "descricao": "Proposta de melhoria para a comunidade académica.",
+    "categoria": "instalacoes",
+    "numeroAluno": "12345",
+    "estado": "submetida",
+    "dataCriacao": "2026-10-23T10:00:00Z",
+    "dataAtualizacao": "2026-10-23T10:00:00Z",
+    "dataResolucao": null
+  },
+  {
+    "id": 2,
+    "titulo": "Alargar horário da biblioteca",
+    "descricao": "Proposta de melhoria para a comunidade académica.",
+    "categoria": "servicos",
+    "numeroAluno": "12345",
+    "estado": "em_analise",
+    "dataCriacao": "2026-10-23T10:00:00Z",
+    "dataAtualizacao": "2026-10-23T10:00:00Z",
+    "dataResolucao": null
+  },
+  {
+    "id": 3,
+    "titulo": "Mais atividades desportivas",
+    "descricao": "Proposta de melhoria para a comunidade académica.",
+    "categoria": "atividades",
+    "numeroAluno": "67890",
+    "estado": "resolvida",
+    "dataCriacao": "2026-10-23T10:00:00Z",
+    "dataAtualizacao": "2026-10-23T10:00:00Z",
+    "dataResolucao": "2026-10-23T10:00:00Z"
+  },
+  {
+    "id": 4,
+    "titulo": "Melhorar salas de estudo",
+    "descricao": "Proposta de melhoria para a comunidade académica.",
+    "categoria": "instalacoes",
+    "numeroAluno": "67890",
+    "estado": "aceite",
+    "dataCriacao": "2026-10-23T10:00:00Z",
+    "dataAtualizacao": "2026-10-23T10:00:00Z",
+    "dataResolucao": null
+  }
+]

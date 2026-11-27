@@ -1,0 +1,423 @@
+openapi: 3.0.3
+info:
+  title: API de Sugestões dos Alunos
+  version: 2.2.0
+  description: Especificação da API de Sugestões dos Alunos com suporte para autenticação via cookie HttpOnly, sincronização offline-first bidirecional e idempotência.
+
+servers:
+  - url: http://localhost:3000/v2
+
+security:
+  - cookieAuth: []
+
+paths:
+  /sessao:
+    get:
+      operationId: obterSessao
+      summary: Verificar sessão ativa
+      description: Devolve a informação da sessão associada ao cookie HttpOnly.
+      responses:
+        '200':
+          description: Sessão ativa válida
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['private, no-store']
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sessao'
+        '401':
+          $ref: '#/components/responses/Erro401'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+    post:
+      operationId: iniciarSessao
+      summary: Iniciar sessão
+      description: Valida credenciais e define o cookie HttpOnly de sessão.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenciais'
+      responses:
+        '200':
+          description: Sessão iniciada com sucesso
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['no-store']
+            Set-Cookie:
+              schema:
+                type: string
+              description: Cookie sessao HttpOnly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sessao'
+        '400':
+          $ref: '#/components/responses/Erro400'
+        '401':
+          $ref: '#/components/responses/Erro401'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+    delete:
+      operationId: terminarSessao
+      summary: Terminar sessão ativa
+      description: Apaga o cookie no cliente; uma cópia do JWT continua válida até expirar.
+      responses:
+        '204':
+          description: Sessão terminada com sucesso
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Erro401'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+
+  /categorias:
+    get:
+      operationId: listarCategorias
+      summary: Obter categorias públicas de sugestões
+      security: []
+      responses:
+        '200':
+          description: Lista de categorias obtida com sucesso
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['public, max-age=86400']
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categoria'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+
+  /sugestoes:
+    get:
+      operationId: listarSugestoes
+      summary: Listar todas as sugestões do utilizador
+      description: Mantido por compatibilidade com clientes v2.1.0. Devolve a lista completa de sugestões do aluno autenticado.
+      responses:
+        '200':
+          description: Lista de sugestões
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['private, no-cache']
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaSugestoes'
+        '401':
+          $ref: '#/components/responses/Erro401'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+    post:
+      operationId: criarSugestao
+      summary: Submeter uma sugestão com suporte para idempotência
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          description: Identificador UUID único gerado no momento de criação local da sugestão
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SugestaoNova'
+      responses:
+        '201':
+          description: Sugestão criada ou repetição idempotente reconhecida com sucesso
+          headers:
+            Location:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['no-store']
+            Idempotent-Replayed:
+              schema:
+                type: boolean
+              description: Presente com valor true se a resposta resultou de uma repetição reconhecida com a mesma Idempotency-Key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sugestao'
+        '400':
+          description: Dados inválidos ou Idempotency-Key não é um UUID válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '401':
+          $ref: '#/components/responses/Erro401'
+        '403':
+          description: Apenas alunos podem criar sugestões
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '409':
+          description: Chave de idempotência reutilizada com outro corpo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+
+  /sugestoes/alteracoes:
+    get:
+      operationId: obterAlteracoesSugestoes
+      summary: Obter alterações de sugestões desde um cursor
+      description: Sincronização incremental (Pull) das alterações efetuadas no servidor para o utilizador autenticado.
+      parameters:
+        - name: desde
+          in: query
+          required: true
+          description: Cursor numérico da última versão conhecida pelo cliente
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Lista de alterações e cursor atualizado
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum: ['private, no-store']
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - alteracoes
+                  - cursor
+                properties:
+                  alteracoes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Sugestao'
+                  cursor:
+                    type: integer
+                    minimum: 0
+        '400':
+          description: Parâmetro desde inválido ou ausente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '401':
+          $ref: '#/components/responses/Erro401'
+        default:
+          $ref: '#/components/responses/ErroDefault'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessao
+      description: Cookie HttpOnly de sessão contendo o token JWT assinado.
+
+  schemas:
+    Credenciais:
+      type: object
+      required:
+        - utilizador
+        - palavraPasse
+      properties:
+        utilizador:
+          type: string
+          pattern: '^(\d{5,8}|[a-z]+\.[a-z]+)$'
+        palavraPasse:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    Sessao:
+      type: object
+      required:
+        - utilizador
+        - nome
+        - papel
+        - expiracao
+      properties:
+        utilizador:
+          type: string
+        nome:
+          type: string
+        papel:
+          type: string
+          enum: [aluno, servicos]
+        expiracao:
+          type: integer
+          description: Timestamp UNIX em milissegundos
+
+    Categoria:
+      type: object
+      required:
+        - codigo
+        - nome
+      properties:
+        codigo:
+          type: string
+        nome:
+          type: string
+
+    SugestaoNova:
+      type: object
+      required:
+        - titulo
+        - descricao
+        - categoria
+      properties:
+        titulo:
+          type: string
+          minLength: 5
+          maxLength: 100
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        categoria:
+          type: string
+
+    Sugestao:
+      type: object
+      required:
+        - id
+        - versao
+        - titulo
+        - descricao
+        - categoria
+        - numeroAluno
+        - estado
+        - dataCriacao
+        - dataAtualizacao
+        - dataResolucao
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        versao:
+          type: integer
+          minimum: 1
+          description: Contador sequencial de versão incrementado pelo servidor
+        titulo:
+          type: string
+        descricao:
+          type: string
+        categoria:
+          type: string
+        numeroAluno:
+          type: string
+        estado:
+          type: string
+          enum: [submetida, em_analise, aceite, rejeitada, resolvida]
+        dataCriacao:
+          type: string
+          format: date-time
+        dataAtualizacao:
+          type: string
+          format: date-time
+        dataResolucao:
+          type: string
+          format: date-time
+          nullable: true
+
+    ListaSugestoes:
+      type: object
+      required:
+        - pagina
+        - tamanhoPagina
+        - total
+        - itens
+      properties:
+        pagina:
+          type: integer
+          minimum: 1
+        tamanhoPagina:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sugestao'
+
+    DetalheErro:
+      type: object
+      required:
+        - campo
+        - problema
+      properties:
+        campo:
+          type: string
+        problema:
+          type: string
+
+    Erro:
+      type: object
+      required:
+        - codigo
+        - mensagem
+      properties:
+        codigo:
+          type: integer
+        mensagem:
+          type: string
+        detalhes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetalheErro'
+
+  responses:
+    Erro400:
+      description: Pedido inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    Erro401:
+      description: Sessão não iniciada ou expirada
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum: ['private, no-store']
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'
+    ErroDefault:
+      description: Erro inesperado do servidor
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+            enum: ['no-store']
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Erro'

@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "versao": 1,
+    "titulo": "Melhores computadores no laboratório",
+    "descricao": "Os computadores do laboratório 3 necessitam de upgrade de memória RAM.",
+    "categoria": "instalacoes",
+    "numeroAluno": "12345",
+    "estado": "submetida",
+    "dataCriacao": "2026-10-01T10:00:00Z",
+    "dataAtualizacao": "2026-10-01T10:00:00Z",
+    "dataResolucao": null
+  },
+  {
+    "id": 2,
+    "versao": 2,
+    "titulo": "Disponibilizar apontamentos em PDF",
+    "descricao": "Disponibilizar os diapositivos e resumos das aulas em formato PDF acessível.",
+    "categoria": "ensino",
+    "numeroAluno": "12345",
+    "estado": "em_analise",
+    "dataCriacao": "2026-10-02T14:30:00Z",
+    "dataAtualizacao": "2026-10-03T09:15:00Z",
+    "dataResolucao": null
+  },
+  {
+    "id": 3,
+    "versao": 3,
+    "titulo": "Extensão do horário da biblioteca",
+    "descricao": "Prolongar o horário de funcionamento da biblioteca até às 22h00 em época de exames.",
+    "categoria": "servicos",
+    "numeroAluno": "67890",
+    "estado": "aceite",
+    "dataCriacao": "2026-10-05T11:00:00Z",
+    "dataAtualizacao": "2026-10-06T16:45:00Z",
+    "dataResolucao": null
+  },
+  {
+    "id": 4,
+    "versao": 4,
+    "titulo": "Torneio desportivo de primavera",
+    "descricao": "Organização de um torneio de futsal e voleibol intercursos na primavera.",
+    "categoria": "atividades",
+    "numeroAluno": "12345",
+    "estado": "resolvida",
+    "dataCriacao": "2026-09-20T09:00:00Z",
+    "dataAtualizacao": "2026-10-15T16:00:00Z",
+    "dataResolucao": "2026-10-15T16:00:00Z"
+  }
+]

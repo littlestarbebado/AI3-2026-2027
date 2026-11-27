@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sugestões · TDM</title>
+  <link rel="stylesheet" href="/estilos.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body data-estado="a-verificar">
+  <main>
+    <header><p class="marca">TDM / SUGESTÕES</p><h1>A tua ideia pode mudar a escola.</h1></header>
+    <p id="ligacao" aria-live="polite">A verificar ligação…</p>
+    <p id="mensagem" role="alert"></p>
+    <button id="atualizar-app" type="button" hidden>Atualizar a aplicação</button>
+    <section id="verificacao"><h2>A verificar sessão…</h2></section>
+    <section id="entrada" hidden>
+      <h2>Entrar</h2>
+      <form id="login">
+        <label for="utilizador">Utilizador</label>
+        <input id="utilizador" name="utilizador" autocomplete="username" required>
+        <label for="palavraPasse">Palavra-passe</label>
+        <input id="palavraPasse" name="palavraPasse" type="password" autocomplete="current-password" minlength="8" maxlength="128" required>
+        <button id="entrar" type="submit">Entrar</button>
+      </form>
+    </section>
+    <section id="sem-ligacao" hidden>
+      <h2>Sem ligação ao servidor</h2>
+      <p>A sessão não pode ser confirmada. Uma cópia local só é apresentada enquanto a última sessão ainda estiver válida.</p>
+      <button id="tentar" type="button">Tentar novamente</button>
+    </section>
+    <section id="sessao" hidden>
+      <h2 id="titulo-sessao" tabindex="-1">As tuas sugestões</h2>
+      <p><strong id="nome"></strong> · <span id="papel"></span></p>
+      <p>Expira às <span id="expiracao"></span> · <span id="restante"></span> segundos restantes</p>
+      <div class="acoes"><button id="recarregar" type="button">Atualizar sugestões</button><button id="sair" class="secundario" type="button">Terminar sessão</button></div>
+      <p id="motivo-sair"></p>
+      <p id="atualizacao" class="legenda"></p>
+      <ul id="lista" aria-label="Sugestões"></ul>
+      <section id="nova-area">
+        <h3>Nova sugestão</h3>
+        <p id="categorias-aviso"></p>
+        <form id="nova">
+          <fieldset id="campos-nova">
+            <label for="titulo">Título · 10–120 caracteres</label>
+            <input id="titulo" name="titulo" required minlength="10" maxlength="120">
+            <label for="descricao">Descrição · 20–2000 caracteres</label>
+            <textarea id="descricao" name="descricao" required minlength="20" maxlength="2000" rows="4"></textarea>
+            <label for="categoria">Categoria</label>
+            <select id="categoria" name="categoria" required><option value="">Escolher categoria</option></select>
+            <button id="criar" type="submit">Enviar sugestão</button>
+          </fieldset>
+        </form>
+      </section>
+    </section>
+    <section id="configuracoes">
+      <h2>Configurações</h2>
+      <div class="grelha">
+        <div><label for="tema">Tema</label><select id="tema"><option value="claro">Claro</option><option value="escuro">Escuro</option></select></div>
+        <div><label for="ordenacao">Ordenação</label><select id="ordenacao"><option value="recentes">Mais recentes</option><option value="estado">Estado</option></select></div>
+      </div>
+    </section>
+    <footer>API04 · Daniel, Mónica, Bia e Dinis</footer>
+  </main>
+  <dialog id="confirmar-saida" aria-labelledby="pergunta-saida">
+    <form method="dialog"><h2 id="pergunta-saida">Terminar sessão?</h2><p id="texto-saida"></p><div class="acoes"><button value="cancelar" class="secundario">Cancelar</button><button value="confirmar">Terminar sessão</button></div></form>
+  </dialog>
+</body>
+</html>

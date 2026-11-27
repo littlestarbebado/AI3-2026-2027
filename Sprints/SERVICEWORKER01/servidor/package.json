@@ -1,0 +1,19 @@
+{
+  "name": "api04-sugestoes",
+  "version": "2.1.0",
+  "description": "Interface offline com sess\u00e3o HttpOnly, Service Worker e IndexedDB",
+  "scripts": {
+    "start": "node --env-file=.env servidor.js",
+    "hash": "node gerar-hash.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "private": true
+}

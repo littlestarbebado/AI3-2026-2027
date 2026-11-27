@@ -1,11 +1,19 @@
-{
-  "name": "reporta-e2-01",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "start": "node --env-file=.env servidor.js"
-  },
-  "dependencies": {
-    "express": "^5.1.0"
+  {
+  <<<<<<< Sprint-E2-02
+    "name": "reporta-e2-02",
+  =======
+    "name": "reporta-e2-01",
+  >>>>>>> master
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+      "start": "node --env-file=.env servidor.js"
+    },
+    "dependencies": {
+  <<<<<<< Sprint-E2-02
+      "express": "^4.21.2"
+  =======
+      "express": "^5.1.0"
+  >>>>>>> master
+    }
   }
-}

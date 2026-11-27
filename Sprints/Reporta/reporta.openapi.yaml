@@ -326,8 +326,9 @@ paths:
                   type: array
                   uniqueItems: true
                   items:
-                    type: integer
-                    minimum: 1
+                    oneOf:
+                    - type: string
+                    - type: integer
   /v1/ocorrencias/{id}/reforcos:
     post:
       summary: Reforçar uma ocorrência
@@ -471,8 +472,9 @@ paths:
         in: path
         required: true
         schema:
-          type: integer
-          minimum: 1
+          oneOf:
+          - type: string
+          - type: integer
       - *id002
       - *id003
       requestBody:
@@ -735,8 +737,9 @@ components:
       - versao
       properties:
         id:
-          type: integer
-          minimum: 1
+          oneOf:
+          - type: string
+          - type: integer
         categoria: *id001
         descricao:
           type: string

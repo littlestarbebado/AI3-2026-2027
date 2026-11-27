@@ -1,0 +1,774 @@
+openapi: 3.0.3
+info:
+  title: Reporta API
+  version: 1.0.0
+  description: Contrato alvo. No E2-01 todas as oito operações respondem 501; regras
+    de negócio ficam para os próximos sprints.
+servers:
+- url: http://localhost:3000
+paths:
+  /v1/categorias:
+    get:
+      summary: Listar categorias e raios
+      operationId: get__v1_categorias
+      responses:
+        '200':
+          description: Categorias; public, max-age=86400.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categoria'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+  /v1/ocorrencias/semelhantes:
+    get:
+      summary: Procurar até cinco candidatas por distância crescente
+      operationId: get__v1_ocorrencias_semelhantes
+      responses:
+        '200':
+          description: Candidatas; no-store.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - candidatas
+                properties:
+                  candidatas:
+                    type: array
+                    maxItems: 5
+                    items:
+                      type: object
+                      required:
+                      - ocorrencia
+                      - distancia
+                      properties:
+                        ocorrencia:
+                          $ref: '#/components/schemas/Ocorrencia'
+                        distancia:
+                          type: number
+                          minimum: 0
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - name: categoria
+        in: query
+        required: true
+        schema: &id001
+          type: string
+          enum:
+          - buraco
+          - semaforo
+          - iluminacao
+          - sinalizacao
+          - outro
+      - name: lat
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -90
+          maximum: 90
+      - name: lng
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -180
+          maximum: 180
+  /v1/ocorrencias:
+    get:
+      summary: Listar ocorrências não resolvidas dentro da área
+      operationId: get__v1_ocorrencias
+      responses:
+        '200':
+          description: Ocorrências para o mapa; no-store.
+          content:
+            application/json:
+              schema: &id005
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - name: bbox
+        in: query
+        required: true
+        schema:
+          type: string
+          description: minLng,minLat,maxLng,maxLat; validar ordem e limites.
+    post:
+      summary: Criar ou juntar uma comunicação
+      operationId: post__v1_ocorrencias
+      responses:
+        '201':
+          description: Nova ocorrência
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - resultado
+                - ocorrencia
+                properties:
+                  resultado:
+                    type: string
+                    enum:
+                    - criada
+                  ocorrencia:
+                    $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+            Location:
+              schema:
+                type: string
+              description: URI da ocorrência criada ou reforçada.
+            Idempotent-Replayed:
+              schema:
+                type: boolean
+              description: true numa repetição com resposta guardada.
+        '200':
+          description: Ocorrência existente
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - resultado
+                - ocorrencia
+                properties:
+                  resultado:
+                    type: string
+                    enum:
+                    - reforcada
+                    - ja-comunicada
+                  ocorrencia:
+                    $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+            Location:
+              schema:
+                type: string
+              description: URI da ocorrência criada ou reforçada.
+            Idempotent-Replayed:
+              schema:
+                type: boolean
+              description: true numa repetição com resposta guardada.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '401':
+          description: Identificação em falta ou inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '409':
+          description: Chave reutilizada com outro corpo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - &id002
+        name: X-Cidadao
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - &id003
+        name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - categoria
+              - descricao
+              - localizacao
+              properties:
+                categoria: *id001
+                descricao:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                localizacao:
+                  $ref: '#/components/schemas/Localizacao'
+                fotografia:
+                  type: string
+                  pattern: ^data:image/jpeg;base64,
+                  description: JPEG em data URL; imagem descodificada até 300 KB.
+                recusadas:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    oneOf:
+                    - type: string
+                    - type: integer
+  /v1/ocorrencias/{id}/reforcos:
+    post:
+      summary: Reforçar uma ocorrência
+      operationId: post__v1_ocorrencias_id_reforcos
+      responses:
+        '201':
+          description: Reforço registado
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - resultado
+                - ocorrencia
+                properties:
+                  resultado:
+                    type: string
+                    enum:
+                    - reforcada
+                  ocorrencia:
+                    $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+            Location:
+              schema:
+                type: string
+              description: URI da ocorrência criada ou reforçada.
+            Idempotent-Replayed:
+              schema:
+                type: boolean
+              description: true numa repetição com resposta guardada.
+        '200':
+          description: Cidadão já contou
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - resultado
+                - ocorrencia
+                properties:
+                  resultado:
+                    type: string
+                    enum:
+                    - ja-comunicada
+                  ocorrencia:
+                    $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+            Location:
+              schema:
+                type: string
+              description: URI da ocorrência criada ou reforçada.
+            Idempotent-Replayed:
+              schema:
+                type: boolean
+              description: true numa repetição com resposta guardada.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '410':
+          description: Ocorrência resolvida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '401':
+          description: Identificação em falta ou inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '409':
+          description: Chave reutilizada com outro corpo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - &id004
+        name: id
+        in: path
+        required: true
+        schema:
+          oneOf:
+          - type: string
+          - type: integer
+      - *id002
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comentario:
+                  type: string
+  /v1/ocorrencias/{id}/fotografia:
+    get:
+      summary: Obter fotografia
+      operationId: get__v1_ocorrencias_id_fotografia
+      responses:
+        '200':
+          description: Fotografia JPEG; no-store.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - *id004
+  /v1/ocorrencias/alteracoes:
+    get:
+      summary: Obter alterações do cidadão desde o cursor
+      operationId: get__v1_ocorrencias_alteracoes
+      responses:
+        '200':
+          description: Alterações; private, no-store.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - alteracoes
+                - cursor
+                properties:
+                  alteracoes: *id005
+                  cursor:
+                    type: integer
+                    minimum: 0
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '401':
+          description: Identificação em falta ou inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - *id002
+      - name: desde
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 0
+  /v1/admin/ocorrencias/{id}:
+    patch:
+      summary: Alterar estado administrativo
+      operationId: patch__v1_admin_ocorrencias_id
+      responses:
+        '200':
+          description: Estado atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ocorrencia'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '400':
+          description: Pedido inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '403':
+          description: Token de administração inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '404':
+          description: Recurso inexistente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+        '501':
+          description: Resposta provisória de todas as operações no sprint E2-01.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              description: no-store no esqueleto; estratégia final indicada na descrição
+                da operação.
+      parameters:
+      - *id004
+      - name: X-Admin-Token
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - estado
+              properties:
+                estado: &id006
+                  type: string
+                  enum:
+                  - aberta
+                  - em-resolucao
+                  - resolvida
+components:
+  schemas:
+    Categoria:
+      type: object
+      required:
+      - id
+      - nome
+      - raio
+      properties:
+        id: *id001
+        nome:
+          type: string
+        raio:
+          type: number
+          exclusiveMinimum: true
+          description: Raio em metros.
+          minimum: 0
+    Localizacao:
+      type: object
+      required:
+      - lat
+      - lng
+      - precisao
+      properties:
+        lat:
+          type: number
+          minimum: -90
+          maximum: 90
+        lng:
+          type: number
+          minimum: -180
+          maximum: 180
+        precisao:
+          type: number
+          minimum: 0
+          description: Precisão em metros.
+    Ocorrencia:
+      type: object
+      required:
+      - id
+      - categoria
+      - descricao
+      - localizacao
+      - temFotografia
+      - estado
+      - comunicacoes
+      - criadaEm
+      - atualizadaEm
+      - versao
+      properties:
+        id:
+          oneOf:
+          - type: string
+          - type: integer
+        categoria: *id001
+        descricao:
+          type: string
+          minLength: 10
+          maxLength: 500
+        localizacao:
+          $ref: '#/components/schemas/Localizacao'
+        temFotografia:
+          type: boolean
+        estado: *id006
+        comunicacoes:
+          type: integer
+          minimum: 1
+        criadaEm:
+          type: string
+          format: date-time
+        atualizadaEm:
+          type: string
+          format: date-time
+        versao:
+          type: integer
+          minimum: 1
+    Erro:
+      type: object
+      required:
+      - erro
+      - mensagem
+      properties:
+        erro:
+          type: string
+        mensagem:
+          type: string
